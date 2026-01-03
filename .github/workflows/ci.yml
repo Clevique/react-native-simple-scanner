@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -95,7 +95,7 @@ jobs:
 
       - name: Install JDK
         if: env.turbo_cache_hit != 1
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v5.1.0
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -133,7 +133,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -177,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -197,4 +197,30 @@ jobs:
             fi
             echo "::warning::Security vulnerabilities found. Please review and update dependencies."
             exit 1
+          fi
+
+  license-check:
+    name: License Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@30320c4495920c05a35f1dbb39b6f3b29f3667ae # v6.0.1
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Check licenses
+        run: |
+          echo "📄 Checking dependency licenses..."
+          pnpm licenses list --json > licenses.json 2>&1 || true
+
+          # Check for incompatible licenses (GPL, AGPL, etc. for MIT project)
+          INCOMPATIBLE_LICENSES=$(pnpm licenses list | grep -i -E "(GPL|AGPL|SSPL|BUSL)" || true)
+
+          if [ ! -z "$INCOMPATIBLE_LICENSES" ]; then
+            echo "⚠️ Warning: Potentially incompatible licenses detected:"
+            echo "$INCOMPATIBLE_LICENSES"
+            echo "::warning::Please review license compatibility"
+          else
+            echo "✅ No incompatible licenses detected"
           fi
