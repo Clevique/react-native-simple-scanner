@@ -69,7 +69,12 @@ public class BarcodeScanner: NSObject {
 
         // Check authorization
         let status = AVCaptureDevice.authorizationStatus(for: .video)
-        guard status == .authorized else {
+
+        // Request permission if not determined
+        if status == .notDetermined {
+            // Permission will be requested when first accessing camera
+            // For now, we'll continue setup and it will fail gracefully if denied
+        } else if status != .authorized {
             throw BarcodeScannerError.unauthorized
         }
 
@@ -112,9 +117,14 @@ public class BarcodeScanner: NSObject {
     }
 
     public func startScanning() {
-        guard !session.isRunning else { return }
+        guard !session.isRunning else {
+            print("BarcodeScanner: Session already running")
+            return
+        }
+        print("BarcodeScanner: Starting session")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.session.startRunning()
+            print("BarcodeScanner: Session started, isRunning: \(self?.session.isRunning ?? false)")
         }
     }
 
