@@ -3,8 +3,9 @@ import type { ViewStyle } from 'react-native';
 import SimpleScannerViewNativeComponent, {
   type BarcodeScannedEvent,
   type ScannerErrorEvent,
+  type CameraStatusChangeEvent,
 } from './SimpleScannerViewNativeComponent';
-import type { BarcodeType, BarcodeResult } from './types';
+import type { BarcodeType, BarcodeResult, CameraStatus } from './types';
 import { ScannerError, ScannerErrorCode } from './types';
 
 export interface BarcodeScannerViewProps {
@@ -43,6 +44,18 @@ export interface BarcodeScannerViewProps {
   onCameraReady?: () => void;
 
   /**
+   * Callback fired when camera status changes
+   */
+  onCameraStatusChange?: (status: CameraStatus) => void;
+
+  /**
+   * Whether barcode detection is active
+   * Camera preview remains visible when false, but no scanning occurs
+   * @default true
+   */
+  isScanning?: boolean;
+
+  /**
    * Component style
    */
   style?: ViewStyle;
@@ -60,6 +73,8 @@ const BarcodeScannerViewComponent: React.FC<BarcodeScannerViewProps> = ({
   onError,
   scanInterval = 1000,
   onCameraReady,
+  onCameraStatusChange,
+  isScanning = true,
   style,
   testID,
 }) => {
@@ -69,7 +84,7 @@ const BarcodeScannerViewComponent: React.FC<BarcodeScannerViewProps> = ({
 
   const handleBarcodeScanned = useCallback(
     (event: { nativeEvent: BarcodeScannedEvent }) => {
-      const { type, data } = event.nativeEvent;
+      const { type, data, bounds } = event.nativeEvent;
       const now = Date.now();
 
       // Scan interval control
@@ -85,11 +100,18 @@ const BarcodeScannerViewComponent: React.FC<BarcodeScannerViewProps> = ({
         lastScannedTimeRef.current = now;
       }
 
-      onBarcodeScanned({
+      const result: BarcodeResult = {
         type: type as BarcodeType,
         data,
         timestamp: now,
-      });
+      };
+
+      // Add bounds if available
+      if (bounds) {
+        result.bounds = bounds;
+      }
+
+      onBarcodeScanned(result);
     },
     [onBarcodeScanned, scanInterval]
   );
@@ -104,6 +126,15 @@ const BarcodeScannerViewComponent: React.FC<BarcodeScannerViewProps> = ({
       }
     },
     [onError]
+  );
+
+  const handleCameraStatusChange = useCallback(
+    (event: { nativeEvent: CameraStatusChangeEvent }) => {
+      if (onCameraStatusChange) {
+        onCameraStatusChange(event.nativeEvent.status as CameraStatus);
+      }
+    },
+    [onCameraStatusChange]
   );
 
   // Notify when camera is ready (simplified implementation)
@@ -124,8 +155,10 @@ const BarcodeScannerViewComponent: React.FC<BarcodeScannerViewProps> = ({
     <SimpleScannerViewNativeComponent
       barcodeTypes={barcodeTypes}
       flashEnabled={flashEnabled}
+      isScanning={isScanning}
       onBarcodeScanned={handleBarcodeScanned}
       onScannerError={handleError}
+      onCameraStatusChange={handleCameraStatusChange}
       style={style}
       testID={testID}
     />

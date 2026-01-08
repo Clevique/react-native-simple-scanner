@@ -157,6 +157,208 @@ import { BarcodeScannerView } from 'react-native-simple-scanner';
 />;
 ```
 
+### With Camera Permission Helpers
+
+```tsx
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
+import {
+  BarcodeScannerView,
+  checkCameraPermission,
+  requestCameraPermission,
+  type PermissionStatus,
+} from 'react-native-simple-scanner';
+
+export default function App() {
+  const [permissionStatus, setPermissionStatus] =
+    useState<PermissionStatus>('not-determined');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      const status = await checkCameraPermission();
+      setPermissionStatus(status);
+      setLoading(false);
+
+      if (status === 'not-determined') {
+        const granted = await requestCameraPermission();
+        setPermissionStatus(granted ? 'granted' : 'denied');
+      }
+    };
+
+    checkPermission();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator />;
+  }
+
+  if (permissionStatus !== 'granted') {
+    return <Text>Camera permission required</Text>;
+  }
+
+  return (
+    <BarcodeScannerView
+      barcodeTypes={['qr']}
+      onBarcodeScanned={(result) => console.log(result)}
+      style={{ flex: 1 }}
+    />
+  );
+}
+```
+
+### With Camera Status Change
+
+```tsx
+import React, { useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
+import {
+  BarcodeScannerView,
+  type CameraStatus,
+} from 'react-native-simple-scanner';
+
+export default function App() {
+  const [cameraStatus, setCameraStatus] =
+    useState<CameraStatus>('initializing');
+
+  return (
+    <View style={{ flex: 1 }}>
+      {cameraStatus === 'initializing' && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator />
+          <Text>Preparing camera...</Text>
+        </View>
+      )}
+
+      {cameraStatus === 'permission-required' && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text>Camera permission required</Text>
+        </View>
+      )}
+
+      <BarcodeScannerView
+        barcodeTypes={['qr']}
+        onBarcodeScanned={(result) => console.log(result)}
+        onCameraStatusChange={setCameraStatus}
+        style={{ flex: 1 }}
+      />
+    </View>
+  );
+}
+```
+
+### With Scanning Pause/Resume
+
+```tsx
+import React, { useState } from 'react';
+import { View, Button, Alert } from 'react-native';
+import { BarcodeScannerView } from 'react-native-simple-scanner';
+
+export default function App() {
+  const [isScanning, setIsScanning] = useState(true);
+
+  const handleBarcodeScanned = (result) => {
+    setIsScanning(false); // Pause scanning
+
+    Alert.alert('Scanned', result.data, [
+      { text: 'Scan Again', onPress: () => setIsScanning(true) },
+    ]);
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <BarcodeScannerView
+        barcodeTypes={['qr']}
+        onBarcodeScanned={handleBarcodeScanned}
+        isScanning={isScanning}
+        style={{ flex: 1 }}
+      />
+    </View>
+  );
+}
+```
+
+### With Bounding Box Overlay
+
+```tsx
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import {
+  BarcodeScannerView,
+  type BarcodeResult,
+} from 'react-native-simple-scanner';
+
+export default function App() {
+  const [highlightBox, setHighlightBox] = useState<
+    BarcodeResult['bounds'] | null
+  >(null);
+
+  const handleBarcodeScanned = (result: BarcodeResult) => {
+    if (result.bounds) {
+      setHighlightBox(result.bounds);
+
+      // Clear highlight after animation
+      setTimeout(() => setHighlightBox(null), 500);
+    }
+
+    console.log('Scanned:', result.data);
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <BarcodeScannerView
+        barcodeTypes={['qr']}
+        onBarcodeScanned={handleBarcodeScanned}
+        style={{ flex: 1 }}
+      />
+
+      {highlightBox && (
+        <View
+          style={[
+            styles.highlight,
+            {
+              left: highlightBox.x,
+              top: highlightBox.y,
+              width: highlightBox.width,
+              height: highlightBox.height,
+            },
+          ]}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  highlight: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderColor: '#00FF00',
+    backgroundColor: 'transparent',
+  },
+});
+```
+
 ## API Reference
 
 ### `BarcodeScannerView`
@@ -165,16 +367,18 @@ Main component for scanning barcodes.
 
 #### Props
 
-| Prop               | Type                              | Default      | Description                                                                  |
-| ------------------ | --------------------------------- | ------------ | ---------------------------------------------------------------------------- |
-| `barcodeTypes`     | `BarcodeType[]`                   | `['qr']`     | Array of barcode types to detect                                             |
-| `onBarcodeScanned` | `(result: BarcodeResult) => void` | **Required** | Callback fired when a barcode is scanned                                     |
-| `flashEnabled`     | `boolean`                         | `false`      | Enable/disable flashlight                                                    |
-| `onError`          | `(error: ScannerError) => void`   | -            | Callback fired when an error occurs                                          |
-| `scanInterval`     | `number`                          | `1000`       | Minimum interval between scanning the same barcode (ms). Set to 0 to disable |
-| `onCameraReady`    | `() => void`                      | -            | Callback fired when camera is ready                                          |
-| `style`            | `ViewStyle`                       | -            | Component style                                                              |
-| `testID`           | `string`                          | -            | Test ID for testing purposes                                                 |
+| Prop                   | Type                              | Default      | Description                                                                  |
+| ---------------------- | --------------------------------- | ------------ | ---------------------------------------------------------------------------- |
+| `barcodeTypes`         | `BarcodeType[]`                   | `['qr']`     | Array of barcode types to detect                                             |
+| `onBarcodeScanned`     | `(result: BarcodeResult) => void` | **Required** | Callback fired when a barcode is scanned                                     |
+| `flashEnabled`         | `boolean`                         | `false`      | Enable/disable flashlight                                                    |
+| `onError`              | `(error: ScannerError) => void`   | -            | Callback fired when an error occurs                                          |
+| `scanInterval`         | `number`                          | `1000`       | Minimum interval between scanning the same barcode (ms). Set to 0 to disable |
+| `onCameraReady`        | `() => void`                      | -            | Callback fired when camera is ready                                          |
+| `onCameraStatusChange` | `(status: CameraStatus) => void`  | -            | Callback fired when camera status changes                                    |
+| `isScanning`           | `boolean`                         | `true`       | Whether barcode detection is active                                          |
+| `style`                | `ViewStyle`                       | -            | Component style                                                              |
+| `testID`               | `string`                          | -            | Test ID for testing purposes                                                 |
 
 ### Types
 
@@ -191,6 +395,12 @@ interface BarcodeResult {
   type: BarcodeType;
   data: string;
   timestamp: number;
+  bounds?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 ```
 
@@ -212,6 +422,72 @@ enum ScannerErrorCode {
   CONFIGURATION_FAILED = 'CONFIGURATION_FAILED',
   UNKNOWN = 'UNKNOWN',
 }
+```
+
+#### `PermissionStatus`
+
+```typescript
+type PermissionStatus = 'granted' | 'denied' | 'not-determined';
+```
+
+#### `CameraStatus`
+
+```typescript
+type CameraStatus = 'initializing' | 'ready' | 'error' | 'permission-required';
+```
+
+### Helper Functions
+
+#### `checkCameraPermission()`
+
+Check current camera permission status without prompting the user.
+
+```typescript
+import { checkCameraPermission } from 'react-native-simple-scanner';
+
+const status = await checkCameraPermission();
+// Returns: 'granted' | 'denied' | 'not-determined'
+```
+
+#### `requestCameraPermission()`
+
+Request camera permission from the user.
+
+```typescript
+import { requestCameraPermission } from 'react-native-simple-scanner';
+
+const granted = await requestCameraPermission();
+// Returns: boolean (true if granted, false otherwise)
+```
+
+### Testing
+
+Use the provided Jest mock module for testing:
+
+```typescript
+import { setupMocks, simulateScan, resetMocks } from 'react-native-simple-scanner/mocks';
+
+// In jest.setup.js
+setupMocks();
+
+// In test file
+describe('ScannerScreen', () => {
+  beforeEach(() => {
+    resetMocks();
+  });
+
+  it('handles barcode scan', () => {
+    render(<ScannerScreen />);
+
+    simulateScan({
+      type: 'ean13',
+      data: '9784873117324',
+      timestamp: Date.now(),
+    });
+
+    expect(screen.getByText('ISBN detected!')).toBeTruthy();
+  });
+});
 ```
 
 ## Supported Barcode Types

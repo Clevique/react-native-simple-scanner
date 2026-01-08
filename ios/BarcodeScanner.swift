@@ -26,11 +26,20 @@ public enum BarcodeScannerError: Error {
 public struct BarcodeScanResult {
     let type: String
     let data: String
+    let bounds: CGRect?
+}
+
+public enum CameraStatus: String {
+    case initializing = "initializing"
+    case ready = "ready"
+    case error = "error"
+    case permissionRequired = "permission-required"
 }
 
 public protocol BarcodeScannerDelegate: AnyObject {
     func barcodeScanner(_ scanner: BarcodeScanner, didScan result: BarcodeScanResult)
     func barcodeScanner(_ scanner: BarcodeScanner, didFailWithError error: Error)
+    func barcodeScanner(_ scanner: BarcodeScanner, didChangeStatus status: CameraStatus)
 }
 
 // MARK: - BarcodeScanner
@@ -60,8 +69,16 @@ public class BarcodeScanner: NSObject {
     // MARK: - Public Methods
 
     public func setupCaptureSession() throws {
+        // Notify initializing status
+        DispatchQueue.main.async { [weak self] in
+            self?.delegate?.barcodeScanner(self!, didChangeStatus: .initializing)
+        }
+
         // Check camera availability
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+            DispatchQueue.main.async { [weak self] in
+                self?.delegate?.barcodeScanner(self!, didChangeStatus: .error)
+            }
             throw BarcodeScannerError.cameraUnavailable
         }
 
@@ -86,13 +103,22 @@ public class BarcodeScanner: NSObject {
             let timeout = semaphore.wait(timeout: .now() + 10)
 
             if timeout == .timedOut {
+                DispatchQueue.main.async { [weak self] in
+                    self?.delegate?.barcodeScanner(self!, didChangeStatus: .permissionRequired)
+                }
                 throw BarcodeScannerError.unauthorized
             }
 
             if !granted {
+                DispatchQueue.main.async { [weak self] in
+                    self?.delegate?.barcodeScanner(self!, didChangeStatus: .permissionRequired)
+                }
                 throw BarcodeScannerError.unauthorized
             }
         } else if status != .authorized {
+            DispatchQueue.main.async { [weak self] in
+                self?.delegate?.barcodeScanner(self!, didChangeStatus: .permissionRequired)
+            }
             throw BarcodeScannerError.unauthorized
         }
 
@@ -132,6 +158,11 @@ public class BarcodeScanner: NSObject {
 
         // Update preview layer
         previewLayer?.session = session
+
+        // Notify ready status
+        DispatchQueue.main.async { [weak self] in
+            self?.delegate?.barcodeScanner(self!, didChangeStatus: .ready)
+        }
     }
 
     public func startScanning() {
@@ -229,7 +260,17 @@ extension BarcodeScanner: AVCaptureMetadataOutputObjectsDelegate {
         }
 
         let typeString = mapObjectTypeToString(metadataObject.type)
-        let result = BarcodeScanResult(type: typeString, data: stringValue)
+
+        // Convert normalized coordinates (0-1) to view coordinates (pixels)
+        var bounds: CGRect? = nil
+        if let previewLayer = previewLayer {
+            // metadataObject.bounds is in normalized coordinates (0-1)
+            let normalizedBounds = metadataObject.bounds
+            // Convert to view coordinates
+            bounds = previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedBounds)
+        }
+
+        let result = BarcodeScanResult(type: typeString, data: stringValue, bounds: bounds)
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }

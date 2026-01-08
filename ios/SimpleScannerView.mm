@@ -58,6 +58,11 @@ using namespace facebook::react;
         _swiftView.flashEnabled = newViewProps.flashEnabled;
     }
 
+    // Update isScanning
+    if (oldViewProps.isScanning != newViewProps.isScanning) {
+        _swiftView.isScanning = newViewProps.isScanning;
+    }
+
     // Store event handlers in Swift view
     __weak SimpleScannerView *weakSelf = self;
     _swiftView.onBarcodeScanned = ^(NSDictionary *event) {
@@ -67,11 +72,30 @@ using namespace facebook::react;
         if (strongSelf->_eventEmitter) {
             std::string type = [[event objectForKey:@"type"] UTF8String];
             std::string data = [[event objectForKey:@"data"] UTF8String];
-            auto emitter = std::static_pointer_cast<SimpleScannerViewEventEmitter const>(strongSelf->_eventEmitter);
-            emitter->onBarcodeScanned(SimpleScannerViewEventEmitter::OnBarcodeScanned{
+
+            // Extract bounds if available
+            facebook::react::SimpleScannerViewEventEmitter::OnBarcodeScanned payload{
                 .type = type,
                 .data = data
-            });
+            };
+
+            NSDictionary *boundsDict = [event objectForKey:@"bounds"];
+            if (boundsDict) {
+                double x = [[boundsDict objectForKey:@"x"] doubleValue];
+                double y = [[boundsDict objectForKey:@"y"] doubleValue];
+                double width = [[boundsDict objectForKey:@"width"] doubleValue];
+                double height = [[boundsDict objectForKey:@"height"] doubleValue];
+
+                payload.bounds = std::make_optional(facebook::react::SimpleScannerViewEventEmitter::BarcodeBounds{
+                    .x = x,
+                    .y = y,
+                    .width = width,
+                    .height = height
+                });
+            }
+
+            auto emitter = std::static_pointer_cast<SimpleScannerViewEventEmitter const>(strongSelf->_eventEmitter);
+            emitter->onBarcodeScanned(payload);
         }
     };
 
@@ -84,6 +108,19 @@ using namespace facebook::react;
             auto emitter = std::static_pointer_cast<SimpleScannerViewEventEmitter const>(strongSelf->_eventEmitter);
             emitter->onScannerError(SimpleScannerViewEventEmitter::OnScannerError{
                 .message = message
+            });
+        }
+    };
+
+    _swiftView.onCameraStatusChange = ^(NSDictionary *event) {
+        SimpleScannerView *strongSelf = weakSelf;
+        if (!strongSelf) return;
+
+        if (strongSelf->_eventEmitter) {
+            std::string status = [[event objectForKey:@"status"] UTF8String];
+            auto emitter = std::static_pointer_cast<SimpleScannerViewEventEmitter const>(strongSelf->_eventEmitter);
+            emitter->onCameraStatusChange(SimpleScannerViewEventEmitter::OnCameraStatusChange{
+                .status = status
             });
         }
     };

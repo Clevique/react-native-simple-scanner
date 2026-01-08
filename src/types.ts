@@ -4,6 +4,20 @@
 export type BarcodeType = 'qr' | 'ean13' | 'ean8' | 'code128';
 
 /**
+ * Camera permission status
+ */
+export type PermissionStatus = 'granted' | 'denied' | 'not-determined';
+
+/**
+ * Camera initialization status
+ */
+export type CameraStatus =
+  | 'initializing'
+  | 'ready'
+  | 'error'
+  | 'permission-required';
+
+/**
  * Result returned when a barcode is scanned
  */
 export interface BarcodeResult {
@@ -21,6 +35,29 @@ export interface BarcodeResult {
    * Unix timestamp (milliseconds) when the barcode was scanned
    */
   timestamp: number;
+
+  /**
+   * Bounding box of the detected barcode in view coordinates
+   * Values are in pixels relative to the BarcodeScannerView dimensions
+   */
+  bounds?: {
+    /**
+     * Left edge in pixels
+     */
+    x: number;
+    /**
+     * Top edge in pixels
+     */
+    y: number;
+    /**
+     * Width in pixels
+     */
+    width: number;
+    /**
+     * Height in pixels
+     */
+    height: number;
+  };
 }
 
 /**

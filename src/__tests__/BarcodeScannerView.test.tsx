@@ -330,4 +330,133 @@ describe('BarcodeScannerView', () => {
       expect(firstRender).toBe(secondRender);
     });
   });
+
+  describe('isScanning', () => {
+    it('passes isScanning prop correctly', () => {
+      const mockCallback = jest.fn();
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={mockCallback}
+          isScanning={false}
+          testID="scanner"
+        />
+      );
+
+      expect(getByTestId('scanner')).toBeTruthy();
+    });
+
+    it('defaults to true when not specified', () => {
+      const mockCallback = jest.fn();
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={mockCallback}
+          testID="scanner"
+        />
+      );
+
+      expect(getByTestId('scanner')).toBeTruthy();
+    });
+  });
+
+  describe('onCameraStatusChange', () => {
+    it('calls onCameraStatusChange callback', () => {
+      const mockStatusChange = jest.fn();
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={jest.fn()}
+          onCameraStatusChange={mockStatusChange}
+          testID="scanner"
+        />
+      );
+
+      const nativeComponent = getByTestId('native-scanner');
+      fireEvent(nativeComponent, 'onCameraStatusChange', {
+        nativeEvent: { status: 'ready' },
+      });
+
+      expect(mockStatusChange).toHaveBeenCalledWith('ready');
+    });
+
+    it('does not call onCameraStatusChange when not provided', () => {
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={jest.fn()}
+          testID="scanner"
+        />
+      );
+
+      expect(getByTestId('scanner')).toBeTruthy();
+      // Should not throw error
+    });
+  });
+
+  describe('bounds', () => {
+    it('includes bounds in barcode result when available', () => {
+      const mockCallback = jest.fn();
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={mockCallback}
+          testID="scanner"
+        />
+      );
+
+      const nativeComponent = getByTestId('native-scanner');
+      fireEvent(nativeComponent, 'onBarcodeScanned', {
+        nativeEvent: {
+          type: 'qr',
+          data: 'test123',
+          bounds: {
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 50,
+          },
+        },
+      });
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'qr',
+          data: 'test123',
+          timestamp: expect.any(Number),
+          bounds: {
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 50,
+          },
+        })
+      );
+    });
+
+    it('handles barcode scan without bounds', () => {
+      const mockCallback = jest.fn();
+      const { getByTestId } = render(
+        <BarcodeScannerView
+          barcodeTypes={['qr']}
+          onBarcodeScanned={mockCallback}
+          testID="scanner"
+        />
+      );
+
+      const nativeComponent = getByTestId('native-scanner');
+      fireEvent(nativeComponent, 'onBarcodeScanned', {
+        nativeEvent: { type: 'qr', data: 'test123' },
+      });
+
+      expect(mockCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'qr',
+          data: 'test123',
+          timestamp: expect.any(Number),
+        })
+      );
+      expect(mockCallback.mock.calls[0][0]).not.toHaveProperty('bounds');
+    });
+  });
 });
