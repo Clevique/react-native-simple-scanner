@@ -11,9 +11,11 @@ public class SimpleScannerViewSwift: UIView {
 
     @objc public var onBarcodeScanned: RCTDirectEventBlock?
     @objc public var onScannerError: RCTDirectEventBlock?
+    @objc public var onCameraStatusChange: RCTDirectEventBlock?
 
     @objc public var barcodeTypes: [String] = ["qr"] {
         didSet {
+            storedBarcodeTypes = barcodeTypes
             updateBarcodeTypes()
         }
     }
@@ -21,6 +23,14 @@ public class SimpleScannerViewSwift: UIView {
     @objc public var flashEnabled: Bool = false {
         didSet {
             updateFlash()
+        }
+    }
+
+    private var storedBarcodeTypes: [String] = ["qr"]
+
+    @objc public var isScanning: Bool = true {
+        didSet {
+            updateScanningState()
         }
     }
 
@@ -78,6 +88,7 @@ public class SimpleScannerViewSwift: UIView {
             }
         } catch {
             emitError(error)
+            // Status change will be handled by delegate
         }
     }
 
@@ -92,7 +103,15 @@ public class SimpleScannerViewSwift: UIView {
     }
 
     private func updateBarcodeTypes() {
-        scanner?.setBarcodeTypes(barcodeTypes)
+        if isScanning {
+            scanner?.setBarcodeTypes(storedBarcodeTypes)
+        } else {
+            scanner?.setBarcodeTypes([])
+        }
+    }
+
+    private func updateScanningState() {
+        updateBarcodeTypes()
     }
 
     private func updateFlash() {
@@ -137,14 +156,32 @@ public class SimpleScannerViewSwift: UIView {
 
 extension SimpleScannerViewSwift: BarcodeScannerDelegate {
     public func barcodeScanner(_ scanner: BarcodeScanner, didScan result: BarcodeScanResult) {
-        onBarcodeScanned?([
+        var event: [String: Any] = [
             "type": result.type,
             "data": result.data
-        ])
+        ]
+
+        // Add bounds if available
+        if let bounds = result.bounds {
+            event["bounds"] = [
+                "x": bounds.origin.x,
+                "y": bounds.origin.y,
+                "width": bounds.size.width,
+                "height": bounds.size.height
+            ]
+        }
+
+        onBarcodeScanned?(event)
     }
 
     public func barcodeScanner(_ scanner: BarcodeScanner, didFailWithError error: Error) {
         emitError(error)
+    }
+
+    public func barcodeScanner(_ scanner: BarcodeScanner, didChangeStatus status: CameraStatus) {
+        onCameraStatusChange?([
+            "status": status.rawValue
+        ])
     }
 }
 

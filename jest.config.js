@@ -1,5 +1,5 @@
 module.exports = {
-  testEnvironment: 'node',
+  preset: 'react-native',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
   transform: {
@@ -14,19 +14,17 @@ module.exports = {
     '!src/**/react-native-codegen-types.d.ts',
   ],
   coverageReporters: ['lcov', 'text', 'text-summary'],
-  // Coverage thresholds temporarily disabled due to React Native 0.83 Jest compatibility issues
-  // TODO: Re-enable after Jest configuration is fixed for native components
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 50,
-  //     functions: 50,
-  //     lines: 50,
-  //     statements: 50,
-  //   },
-  // },
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50,
+    },
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|react-native-.*)/)',
+    'node_modules/(?!(react-native|@react-native|react-native-.*|@testing-library)/)',
   ],
   moduleNameMapper: {
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__mocks__/fileMock.js',

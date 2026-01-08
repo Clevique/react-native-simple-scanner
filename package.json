@@ -1,6 +1,6 @@
 {
   "name": "react-native-simple-scanner",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A lightweight and simple barcode/QR code scanner for React Native",
   "workspaces": [
     "example"
@@ -12,6 +12,11 @@
       "source": "./src/index.tsx",
       "types": "./lib/typescript/src/index.d.ts",
       "default": "./lib/module/index.js"
+    },
+    "./mocks": {
+      "source": "./src/mocks/jest.ts",
+      "types": "./src/mocks/jest.ts",
+      "default": "./src/mocks/jest.ts"
     },
     "./package.json": "./package.json"
   },
