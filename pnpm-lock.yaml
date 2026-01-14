@@ -104,8 +104,8 @@ importers:
         specifier: 20.0.2
         version: 20.0.2
       '@react-native-community/cli-platform-ios':
-        specifier: 20.0.2
-        version: 20.0.2
+        specifier: 20.1.0
+        version: 20.1.0
       '@react-native/babel-preset':
         specifier: 0.83.1
         version: 0.83.1(@babel/core@7.28.5)
@@ -1201,6 +1201,9 @@ packages:
   '@react-native-community/cli-config-apple@20.0.2':
     resolution: {integrity: sha512-6MLL9Duu/JytqI6XfYuc78LSkRGfJoCqTSfqTJzBNSnz6S7XJps9spGBlgvrGh/j0howBpQlFH0J8Ws4N4mCxA==}
 
+  '@react-native-community/cli-config-apple@20.1.0':
+    resolution: {integrity: sha512-n6JVs8Q3yxRbtZQOy05ofeb1kGtspGN3SgwPmuaqvURF9fsuS7c4/9up2Kp9C+1D2J1remPJXiZLNGOcJvfpOA==}
+
   '@react-native-community/cli-config@20.0.2':
     resolution: {integrity: sha512-OuSAyqTv0MBbRqSyO+80IKasHnwLESydZBTrLjIGwGhDokMH07mZo8Io2H8X300WWa57LC2L8vQf73TzGS3ikQ==}
 
@@ -1213,14 +1216,23 @@ packages:
   '@react-native-community/cli-platform-apple@20.0.2':
     resolution: {integrity: sha512-PdsQVFLY+wGnAN1kZ38XzzWiUlqaG1cXdpkQ1rYaiiNu3PVTc2/KtteLcPG/wbApbfoPggQ/ffh+JGg7NL+HNw==}
 
+  '@react-native-community/cli-platform-apple@20.1.0':
+    resolution: {integrity: sha512-0ih1hrYezSM2cuOlVnwBEFtMwtd8YgpTLmZauDJCv50rIumtkI1cQoOgLoS4tbPCj9U/Vn2a9BFH0DLFOOIacg==}
+
   '@react-native-community/cli-platform-ios@20.0.2':
     resolution: {integrity: sha512-bVOqLsBztT+xVV65uztJ7R/dtjj4vaPXJU1RLi35zLtr1APAxzf+2ydiixxtBjNFylM3AZlF8iL5WXjeWVqrmA==}
+
+  '@react-native-community/cli-platform-ios@20.1.0':
+    resolution: {integrity: sha512-XN7Da9z4WsJxtqVtEzY8q2bv22OsvzaFP5zy5+phMWNoJlU4lf7IvBSxqGYMpQ9XhYP7arDw5vmW4W34s06rnA==}
 
   '@react-native-community/cli-server-api@20.0.2':
     resolution: {integrity: sha512-u4tUzWnc+qthaDvd1NxdCqCNMY7Px6dAH1ODAXMtt+N27llGMJOl0J3slMx03dScftOWbGM61KA5cCpaxphYVQ==}
 
   '@react-native-community/cli-tools@20.0.2':
     resolution: {integrity: sha512-bPYhRYggW9IIM8pvrZF/0r6HaxCyEWDn6zfPQPMWlkQUwkzFZ8GBY/M7yiHgDzozWKPT4DqZPumrq806Vcksow==}
+
+  '@react-native-community/cli-tools@20.1.0':
+    resolution: {integrity: sha512-/YmzHGOkY6Bgrv4OaA1L8rFqsBlQd1EB2/ipAoKPiieV0EcB5PUamUSuNeFU3sBZZTYQCUENwX4wgOHgFUlDnQ==}
 
   '@react-native-community/cli-types@20.0.2':
     resolution: {integrity: sha512-OZzy6U4M8Szg8iiF459OoTjRKggxLrdhZVHKfRhrAUfojhjRiWbJNkkPxJtOIPeNSgsB0heizgpE4QwCgnYeuQ==}
@@ -1493,6 +1505,9 @@ packages:
 
   '@vscode/sudo-prompt@9.3.1':
     resolution: {integrity: sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==}
+
+  '@vscode/sudo-prompt@9.3.2':
+    resolution: {integrity: sha512-gcXoCN00METUNFeQOFJ+C9xUI0DKB+0EGMVg7wbVYRHBw2Eq3fKisDZOkRdOz3kqXRKOENMfShPOmypw1/8nOw==}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -5104,6 +5119,13 @@ snapshots:
       execa: 5.1.1
       fast-glob: 3.3.3
 
+  '@react-native-community/cli-config-apple@20.1.0':
+    dependencies:
+      '@react-native-community/cli-tools': 20.1.0
+      execa: 5.1.1
+      fast-glob: 3.3.3
+      picocolors: 1.1.1
+
   '@react-native-community/cli-config@20.0.2(typescript@5.9.3)':
     dependencies:
       '@react-native-community/cli-tools': 20.0.2
@@ -5151,9 +5173,21 @@ snapshots:
       execa: 5.1.1
       fast-xml-parser: 4.5.3
 
+  '@react-native-community/cli-platform-apple@20.1.0':
+    dependencies:
+      '@react-native-community/cli-config-apple': 20.1.0
+      '@react-native-community/cli-tools': 20.1.0
+      execa: 5.1.1
+      fast-xml-parser: 4.5.3
+      picocolors: 1.1.1
+
   '@react-native-community/cli-platform-ios@20.0.2':
     dependencies:
       '@react-native-community/cli-platform-apple': 20.0.2
+
+  '@react-native-community/cli-platform-ios@20.1.0':
+    dependencies:
+      '@react-native-community/cli-platform-apple': 20.1.0
 
   '@react-native-community/cli-server-api@20.0.2':
     dependencies:
@@ -5182,6 +5216,19 @@ snapshots:
       launch-editor: 2.12.0
       mime: 2.6.0
       ora: 5.4.1
+      prompts: 2.4.2
+      semver: 7.7.3
+
+  '@react-native-community/cli-tools@20.1.0':
+    dependencies:
+      '@vscode/sudo-prompt': 9.3.2
+      appdirsjs: 1.2.7
+      execa: 5.1.1
+      find-up: 5.0.0
+      launch-editor: 2.12.0
+      mime: 2.6.0
+      ora: 5.4.1
+      picocolors: 1.1.1
       prompts: 2.4.2
       semver: 7.7.3
 
@@ -5591,6 +5638,8 @@ snapshots:
       eslint-visitor-keys: 4.2.1
 
   '@vscode/sudo-prompt@9.3.1': {}
+
+  '@vscode/sudo-prompt@9.3.2': {}
 
   abort-controller@3.0.0:
     dependencies:
