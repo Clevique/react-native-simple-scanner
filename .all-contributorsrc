@@ -11,6 +11,13 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/251686758?v=4",
       "profile": "https://clevique.app/",
       "contributions": ["code"]
+    },
+    {
+      "login": "bon-clevique",
+      "name": "bon.clevique",
+      "avatar_url": "https://avatars.githubusercontent.com/u/91051205?v=4",
+      "profile": "https://bonbanbon.notion.site/About-bon-d9ae5bca197d46ec8566250a4ec8f062?pvs=4",
+      "contributions": ["code"]
     }
   ],
   "projectName": "react-native-simple-scanner",
